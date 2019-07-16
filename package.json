@@ -1,0 +1,19 @@
+{
+  "name": "reachme-backend-demo",
+  "version": "1.0.0",
+  "description": "Reachme app backend demo",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "sandesh",
+  "license": "ISC",
+  "dependencies": {
+    "body-parser": "^1.19.0",
+    "cors": "^2.8.5",
+    "express": "^4.17.1",
+    "ibm-watson": "^4.2.2",
+    "lodash": "^4.17.11",
+    "socket.io": "^2.2.0"
+  }
+}
