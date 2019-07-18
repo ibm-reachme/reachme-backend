@@ -4,16 +4,15 @@ let http = require('http').Server(app);
 let io = require('socket.io')(http);
 const AssistantV2 = require('ibm-watson/assistant/v2');
 
-const introMessage = "Hello I am your assistant ReachMe. You can ask for any supplies in case of emergency";
 const assistantName = "ReachMe";
 
 // Set up Assistant service wrapper.
 const service = new AssistantV2({
-  iam_apikey: 'uhxr5zKspGaB6mhcLuASacq1NqsEVAr511u3LM8gj-k4', // replace with API key
-  version: '2019-07-16',
-  url: 'https://gateway-lon.watsonplatform.net/assistant/api'
+  iam_apikey: '1zsacDSXVox2FR8V3zEUryGAn1DfsFr5r6m3P003oGpV',
+  version: '2019-06-24',
+  url: 'https://gateway-wdc.watsonplatform.net/assistant/api'
 });
-const assistantId = '13af3e8c-2ec2-4d01-a3eb-8b928e6dfa43';
+const assistantId = '4c0dfcf5-5ad2-498c-8e88-1c38ab423334';
 let sessionId;
 
 io.on('connection', (socket) => {
@@ -39,7 +38,6 @@ io.on('connection', (socket) => {
       io.emit('message', { text: watsonMessage, from: assistantName, created: new Date() });
     }).catch(err => {
       console.log(err); // something went wrong
-      return 'asa';
     });;
   });
 });
@@ -47,7 +45,7 @@ io.on('connection', (socket) => {
 // Create session and preserve the session id
 service
   .createSession({
-    assistant_id: assistantId,
+    assistant_id: assistantId
   })
   .then(res => {
     console.log(res);
@@ -74,7 +72,27 @@ function processResponse(response) {
   if (response.output.generic && response.output.generic.length > 0) {
     if (response.output.generic[0].response_type === 'text') {
       return response.output.generic[0].text;
+    } else if (response.output.generic[0].response_type === 'option') {
+      let array = response.output.generic[0].options;
+      let responseString = response.output.generic[0].title + ": \n";
+      for (index = 0; index < array.length; index++) {
+        responseString += " " + array[index].label;
+      }
+
+      return responseString;
+
     }
+  } else if (response.output.intents && response.output.intents.length > 0) {
+
+    let responseString = "";
+    if (response.output.intents[0].intent === "need-help") {
+
+      for (index = 0; index < response.output.entities.length; index++) {
+        responseString += " " + response.output.entities[index].value;
+      }
+    }
+
+    return responseString;
   }
 }
 
