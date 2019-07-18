@@ -8,11 +8,11 @@ const assistantName = "ReachMe";
 
 // Set up Assistant service wrapper.
 const service = new AssistantV2({
-  iam_apikey: '1zsacDSXVox2FR8V3zEUryGAn1DfsFr5r6m3P003oGpV',
+  iam_apikey: 'YdIwGy3ZZEFH46mpzkWtBE9DqOpBz8_ChPXmtvbF_iUc',
   version: '2019-06-24',
-  url: 'https://gateway-wdc.watsonplatform.net/assistant/api'
+  url: 'https://gateway-lon.watsonplatform.net/assistant/api'
 });
-const assistantId = '4c0dfcf5-5ad2-498c-8e88-1c38ab423334';
+const assistantId = 'c14767b8-c271-4c18-8695-9e6da44af327';
 let sessionId;
 
 io.on('connection', (socket) => {
@@ -70,18 +70,16 @@ function processResponse(response) {
   // Display the output from assistant, if any. Supports only a single
   // text response.
   if (response.output.generic && response.output.generic.length > 0) {
-    if (response.output.generic[0].response_type === 'text') {
-      return response.output.generic[0].text;
-    } else if (response.output.generic[0].response_type === 'option') {
-      let array = response.output.generic[0].options;
-      let responseString = response.output.generic[0].title + ": \n";
-      for (index = 0; index < array.length; index++) {
-        responseString += " " + array[index].label;
+    let responseString = "";
+    for (index = 0; index < response.output.generic.length; index++) {
+      if (response.output.generic[index].response_type === 'text') {
+        responseString += response.output.generic[index].text;
+      } else if (response.output.generic[index].response_type === 'option') {
+        let array = response.output.generic[index].options;
+        responseString += response.output.generic[0].title + ": \n";
       }
-
-      return responseString;
-
     }
+    return responseString;
   } else if (response.output.intents && response.output.intents.length > 0) {
 
     let responseString = "";
