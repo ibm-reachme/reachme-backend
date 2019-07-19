@@ -18,8 +18,32 @@ let sessionId;
 io.on('connection', (socket) => {
   //io.emit('message', { text: introMessage, from: assistantName, created: new Date() });
 
+  // Create session and preserve the session id
+  service
+    .createSession({
+      assistant_id: assistantId
+    })
+    .then(res => {
+      console.log("Session created for ", socket.nickname);
+      sessionId = res.session_id;
+    })
+    .catch(err => {
+      console.log(err); // something went wrong
+    });
+
   socket.on('disconnect', function () {
     io.emit('users-changed', { user: socket.nickname, event: 'left' });
+    service
+      .deleteSession({
+        assistant_id: assistantId,
+        session_id: sessionId,
+      })
+      .then(res => {
+        console.log("Session closed for ", socket.nickname);
+      })
+      .catch(err => {
+        console.log(err); // something went wrong
+      });
   });
 
   socket.on('set-nickname', (nickname) => {
@@ -41,19 +65,6 @@ io.on('connection', (socket) => {
     });;
   });
 });
-
-// Create session and preserve the session id
-service
-  .createSession({
-    assistant_id: assistantId
-  })
-  .then(res => {
-    console.log(res);
-    sessionId = res.session_id;
-  })
-  .catch(err => {
-    console.log(err); // something went wrong
-  });
 
 // Send message to assistant.
 function sendMessage(messageInput) {
@@ -92,21 +103,6 @@ function processResponse(response) {
 
     return responseString;
   }
-}
-
-/**
- * Find a right place to close session in future. Currently unused
- */
-function closeSession() {
-  // We're done, so we close the session.
-  service
-    .deleteSession({
-      assistant_id: assistantId,
-      session_id: sessionId,
-    })
-    .catch(err => {
-      console.log(err); // something went wrong
-    });
 }
 
 var port = process.env.PORT || 3000;
