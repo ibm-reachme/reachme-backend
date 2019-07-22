@@ -1,7 +1,10 @@
 
 let app = require('express')();
+let loki = require('lokijs');
 let http = require('http').Server(app);
 let io = require('socket.io')(http);
+var cors = require('cors');
+var bodyParser = require('body-parser');
 const AssistantV2 = require('ibm-watson/assistant/v2');
 
 const assistantName = "ReachMe";
@@ -15,10 +18,31 @@ const service = new AssistantV2({
 const assistantId = 'c14767b8-c271-4c18-8695-9e6da44af327';
 let sessionId;
 
+var db = new loki('db.json');
+var users = db.addCollection('users');
+
+app.use(bodyParser.json()); // support json encoded bodies
+app.use(bodyParser.urlencoded({extended: true})); // support encoded bodies
+app.use(cors());
+
+app.get('/user', (req, res) => {
+  res.send(users.data);
+});
+
+app.get('/user/:name', (req, res) => {
+  var user = users.findOne({ name:req.params.name });
+  res.send(user);
+});
+
+app.post('/user', (req, res) => {
+  users.insert(req.body);
+  res.send(req.body);
+});
+
 io.on('connection', (socket) => {
   //io.emit('message', { text: introMessage, from: assistantName, created: new Date() });
 
-  // Create session and preserve the session id
+// Create session and preserve the session id
   service
     .createSession({
       assistant_id: assistantId
